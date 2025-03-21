@@ -1,12 +1,12 @@
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct Money(u32);
+pub struct Money(i32);
 
 impl Money {
-    pub fn new(amount: u32) -> Self {
+    pub fn new(amount: i32) -> Self {
         Self(amount)
     }
 
-    pub fn as_inner(&self) -> u32 {
+    pub fn as_inner(&self) -> i32 {
         self.0
     }
 }

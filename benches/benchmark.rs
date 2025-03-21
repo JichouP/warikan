@@ -70,7 +70,7 @@ fn bench_solve_large(c: &mut Criterion) {
             .collect();
 
         payments.push(Payment::new(
-            Money::new(1000 * (i + 1) as u32),
+            Money::new(1000 * (i + 1) as i32),
             Person::new(payer.to_string()),
             participants,
         ));

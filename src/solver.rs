@@ -12,7 +12,7 @@ pub fn solve(payments: Vec<Payment>) -> Vec<Repayment> {
 
     for payment in payments {
         let payer = payment.from().as_inner().clone();
-        let amount = payment.money().as_inner() as i32;
+        let amount = payment.money().as_inner();
         let participants = payment.to();
 
         // 参加者が空の場合はスキップ
@@ -64,7 +64,7 @@ pub fn solve(payments: Vec<Payment>) -> Vec<Repayment> {
 
         // 返済を作成
         repayments.push(Repayment::new(
-            Money::new(repayment_amount as u32),
+            Money::new(repayment_amount),
             Person::new(debtor.0.clone()),
             Person::new(creditor.0.clone()),
         ));
