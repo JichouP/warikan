@@ -96,56 +96,108 @@ mod tests {
     #[case(
         vec![Payment::new(
             Money::new(100),
-            Person::new("Alice".to_string()),
-            vec![Person::new("Bob".to_string())],
+            Person::new("A".to_string()),
+            vec![Person::new("B".to_string())],
         )],
         vec![Repayment::new(
             Money::new(100),
-            Person::new("Bob".to_string()),
-            Person::new("Alice".to_string()),
+            Person::new("B".to_string()),
+            Person::new("A".to_string()),
         )]
     )]
     #[case(
         vec![Payment::new(
             Money::new(100),
-            Person::new("Alice".to_string()),
+            Person::new("A".to_string()),
             vec![
-                Person::new("Alice".to_string()),
-                Person::new("Bob".to_string()),
+                Person::new("A".to_string()),
+                Person::new("B".to_string()),
             ],
         )],
         vec![Repayment::new(
             Money::new(50),
-            Person::new("Bob".to_string()),
-            Person::new("Alice".to_string()),
+            Person::new("B".to_string()),
+            Person::new("A".to_string()),
         )]
     )]
     #[case(
         vec![Payment::new(
             Money::new(2000),
-            Person::new("Alice".to_string()),
+            Person::new("A".to_string()),
             vec![
-                Person::new("Alice".to_string()),
-                Person::new("Bob".to_string()),
-                Person::new("Charlie".to_string()),
-                Person::new("Dave".to_string()),
+                Person::new("A".to_string()),
+                Person::new("B".to_string()),
+                Person::new("C".to_string()),
+                Person::new("D".to_string()),
             ],
         )],
         vec![
             Repayment::new(
                 Money::new(500),
-                Person::new("Bob".to_string()),
-                Person::new("Alice".to_string()),
+                Person::new("B".to_string()),
+                Person::new("A".to_string()),
             ),
             Repayment::new(
                 Money::new(500),
-                Person::new("Charlie".to_string()),
-                Person::new("Alice".to_string()),
+                Person::new("C".to_string()),
+                Person::new("A".to_string()),
             ),
             Repayment::new(
                 Money::new(500),
-                Person::new("Dave".to_string()),
-                Person::new("Alice".to_string()),
+                Person::new("D".to_string()),
+                Person::new("A".to_string()),
+            ),
+        ]
+    )]
+    #[case(
+        vec![Payment::new(
+            Money::new(1200),
+            Person::new("A".to_string()),
+            vec![
+                Person::new("A".to_string()),
+                Person::new("B".to_string()),
+            ],
+        ),
+        Payment::new(
+            Money::new(1200),
+            Person::new("B".to_string()),
+            vec![
+                Person::new("A".to_string()),
+                Person::new("B".to_string()),
+                Person::new("C".to_string()),
+                Person::new("D".to_string()),
+            ],
+        ),
+        Payment::new(
+            Money::new(1200),
+            Person::new("C".to_string()),
+            vec![
+                Person::new("A".to_string()),
+                Person::new("B".to_string()),
+                Person::new("C".to_string()),
+                Person::new("D".to_string()),
+            ],
+        ),
+        Payment::new(
+            Money::new(1200),
+            Person::new("D".to_string()),
+            vec![
+                Person::new("B".to_string()),
+                Person::new("C".to_string()),
+                Person::new("D".to_string()),
+            ],
+        ),
+    ],
+        vec![
+            Repayment::new(
+                Money::new(200),
+                Person::new("B".to_string()),
+                Person::new("C".to_string()),
+            ),
+            Repayment::new(
+                Money::new(200),
+                Person::new("B".to_string()),
+                Person::new("D".to_string()),
             ),
         ]
     )]
