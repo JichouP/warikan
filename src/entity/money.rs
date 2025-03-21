@@ -1,14 +1,12 @@
-pub struct Money {
-    pub amount: u32,
-}
+pub struct Money(u32);
 
 impl Money {
     pub fn new(amount: u32) -> Self {
-        Self { amount }
+        Self(amount)
     }
 
     pub fn as_inner(&self) -> u32 {
-        self.amount
+        self.0
     }
 }
 
@@ -18,13 +16,6 @@ mod tests {
 
     #[test]
     fn test_money_new() {
-        let amount = 100;
-        let money = Money::new(amount);
-        assert_eq!(money.amount, amount);
-    }
-
-    #[test]
-    fn test_money_as_inner() {
         let amount = 100;
         let money = Money::new(amount);
         assert_eq!(money.as_inner(), amount);
