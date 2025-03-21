@@ -1,0 +1,22 @@
+{
+    "coverage-gutters.coverageFileNames": [
+        "target/coverage.lcov",
+        "lcov.info",
+        "cov.xml",
+        "coverage.xml",
+        "jacoco.xml",
+        "coverage.cobertura.xml"
+    ],
+    "coverage-gutters.showGutterCoverage": false,
+    "coverage-gutters.showLineCoverage": true,
+    "coverage-gutters.showRulerCoverage": true,
+    "livePreview.portNumber": 3001,
+    "livePreview.defaultPreviewPath": "/target/coverage/index.html",
+    "roo-cline.allowedCommands": [
+        "git log",
+        "git diff",
+        "git show",
+        "makers build",
+        "makers test"
+    ]
+}

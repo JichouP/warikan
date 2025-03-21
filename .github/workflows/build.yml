@@ -1,0 +1,116 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*.*.*'
+    paths-ignore:
+      - '**/README.md'
+  pull_request:
+    paths-ignore:
+      - '**/README.md'
+
+env:
+  DATABASE_URL: postgres://postgres:postgres@localhost:5432/CHANGEME
+  POSTGRES_DB: CHANGEME
+  POSTGRES_PASSWORD: postgres
+  POSTGRES_PORT: 5432
+  POSTGRES_USER: postgres
+  RUST_LOG: warn # sqlx のログなどが大量に出てブラウザがフリーズするので warn にしている
+  RUST_BACKTRACE: 1
+
+jobs:
+  checks:
+    name: cargo build / cargo fmt / cargo clippy / cargo test
+    runs-on: ubuntu-latest
+    services:
+      db:
+        image: postgres:16.4-alpine3.20
+        env:
+          POSTGRES_DB: CHANGEME
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - '5432:5432'
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 1s
+          --health-timeout 5s
+          --health-retries 20
+    steps:
+      - uses: Kesin11/actions-timeline@v2
+        if: ${{ github.event_name == 'pull_request' }} # 一番長い job にのみセットしたいため
+      - uses: actions/checkout@v4
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: sqlx-cli
+      - run: sqlx database setup
+      - run: cargo sqlx prepare
+      - run: cargo build --all-features
+      - run: cargo fmt --all -- --check
+      - run: cargo clippy --all-features -- -D warnings
+      - run: cargo test --all-features
+  build:
+    needs: checks
+    name: docker build
+    runs-on: ubuntu-latest
+    if: ${{ github.ref_name == 'main' || github.ref_type == 'tag' }}
+    services:
+      db:
+        image: postgres:16.4-alpine3.20
+        env:
+          POSTGRES_DB: CHANGEME
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - '5432:5432'
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 1s
+          --health-timeout 5s
+          --health-retries 20
+    steps:
+      - uses: Kesin11/actions-timeline@v2
+      - uses: actions/checkout@v4
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: sqlx-cli
+      - run: sqlx database setup
+      - run: cargo sqlx prepare
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Login Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Collect metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=raw,value=latest,enable=${{ github.ref_name == 'main' }}
+            type=semver,pattern={{raw}},enable=${{ github.ref_type == 'tag' }}
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          platforms: linux/amd64
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          # provenance: false
+  lint-dockerfile:
+    name: lint Dockerfile
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hadolint/hadolint-action@v3.1.0

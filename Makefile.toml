@@ -1,0 +1,96 @@
+[config]
+skip_core_tasks = true
+
+[env]
+RUSTFLAGS = "-C instrument-coverage" # なぜか .env から読んでくれないので追加
+
+[tasks.b]
+alias = "build"
+
+[tasks.build]
+description = "Build project"
+command = "cargo"
+args = ["build", "--timings"]
+
+[tasks.w]
+alias = "watch"
+
+[tasks.watch]
+description = "Run server and watch for changes"
+command = "cargo"
+args = ["watch", "-x", "run"]
+
+[tasks.t]
+alias = "test"
+
+[tasks.test]
+description = "Run tests"
+dependencies = ["_test", "_rm_coverage_dir", "_grcov_html", "_grcov_lcov"]
+
+[tasks.tbls]
+description = "Run tbls doc"
+dependencies = ["_tbls_clean", "_tbls_gen"]
+
+[tasks.d]
+alias = "doc"
+
+[tasks.doc]
+description = "Run cargo doc"
+command = "cargo"
+args = ["doc", "--no-deps", "--timings"]
+
+[tasks._test]
+description = "Run tests"
+command = "cargo"
+args = ["test", "--timings"]
+
+[tasks._rm_coverage_dir]
+description = "Remove coverage directory"
+command = "rm"
+args = ["-rf", "./target/coverage/"]
+
+[tasks._grcov_html]
+description = "Generate coverage report in HTML format"
+command = "grcov"
+args = [
+    ".",
+    "-s",
+    ".",
+    "--binary-path",
+    "./target/debug/",
+    "-t",
+    "html",
+    "--branch",
+    "--ignore-not-existing",
+    "--keep-only",
+    "src/*",
+    "-o",
+    "./target/coverage/",
+]
+
+[tasks._grcov_lcov]
+description = "Generate coverage report in LCOV format"
+command = "grcov"
+args = [
+    ".",
+    "-s",
+    ".",
+    "--binary-path",
+    "./target/debug/",
+    "-t",
+    "lcov",
+    "--branch",
+    "--ignore-not-existing",
+    "-o",
+    "./target/coverage.lcov",
+]
+
+[tasks._tbls_clean]
+description = "Remove doc/schema directory"
+command = "rm"
+args = ["-rf", "doc/schema"]
+
+[tasks._tbls_gen]
+description = "Generate doc/schema"
+command = "tbls"
+args = ["doc"]

@@ -1,0 +1,17 @@
+[package]
+name = "CHANGEME"
+version = "0.1.0"
+edition = "2024"
+
+[[bin]]
+name = "main"
+path = "src/main.rs"
+
+[lib]
+name = "lib"
+path = "src/lib.rs"
+
+[dependencies]
+
+[profile.release]
+debug = true
