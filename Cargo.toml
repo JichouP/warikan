@@ -8,6 +8,7 @@ name = "lib"
 path = "src/lib.rs"
 
 [dependencies]
+rstest = "0.25.0"
 
 [profile.release]
 debug = true

@@ -1,5 +1,6 @@
 use super::{money::Money, person::Person};
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Repayment {
     money: Money,
     from: Person,

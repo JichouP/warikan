@@ -1,4 +1,4 @@
-mod money;
-mod payment;
-mod person;
-mod repayment;
+pub mod money;
+pub mod payment;
+pub mod person;
+pub mod repayment;
