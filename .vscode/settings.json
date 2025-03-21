@@ -18,5 +18,8 @@
         "git show",
         "makers build",
         "makers test"
+    ],
+    "cSpell.words": [
+        "warikan"
     ]
 }

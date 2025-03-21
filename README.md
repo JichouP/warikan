@@ -1,6 +1,6 @@
-# rust-devcontainer-template
+# warikan
 
-[![Build](https://github.com/JichouP/rust-devcontainer-template/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/JichouP/rust-devcontainer-template/actions/workflows/build.yml)
+[![Build](https://github.com/JichouP/warikan/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/JichouP/warikan/actions/workflows/build.yml)
 
 ## Develop
 
