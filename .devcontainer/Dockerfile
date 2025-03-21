@@ -9,7 +9,7 @@ RUN echo "alias c='cargo'" >> /etc/bash.bashrc && \
     echo "export GPG_TTY=\$(tty)" >> /etc/bash.bashrc
 
 # vscode ユーザーで cargo binstall
-ENV CARGO_MAKE_VERSION=0.37.24
+ENV CARGO_MAKE_VERSION=0.37.23
 USER vscode
 RUN curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
 RUN cargo binstall -y cargo-make@${CARGO_MAKE_VERSION} cargo-watch grcov
