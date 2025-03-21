@@ -20,14 +20,14 @@ pub fn solve(payments: Vec<Payment>) -> Vec<Repayment> {
             continue;
         }
 
-        let share = amount / participants.len() as i32;
-        let remainder = amount % participants.len() as i32;
-
         // 支払った人の残高を増やす
         update_balance(&mut balances, payer, amount);
 
-        // 参加者の残高を減らす（端数は最初の参加者に割り当て）
-        for (i, participant) in participants.iter().enumerate() {
+        // 参加者の残高を減らす（端数は最後の参加者に割り当て）
+        let share = amount / participants.len() as i32;
+        let remainder = amount % participants.len() as i32;
+
+        for (i, participant) in participants.iter().rev().enumerate() {
             let name = participant.as_inner().clone();
             let share_amount = if i == 0 { share + remainder } else { share };
             update_balance(&mut balances, name, -share_amount);
@@ -201,8 +201,202 @@ mod tests {
             ),
         ]
     )]
+    // #[case(
+    //     vec![
+    //         Payment::new(
+    //             Money::new(200),
+    //             Person::new("D".to_string()),
+    //             vec![
+    //                 Person::new("B".to_string()),
+    //                 Person::new("D".to_string()),
+    //                 Person::new("J".to_string()),
+    //                 Person::new("N".to_string()),
+    //                 Person::new("P".to_string()),
+    //                 Person::new("R".to_string()),
+    //                 Person::new("S".to_string()),
+    //                 Person::new("X".to_string()),
+    //                 Person::new("Y".to_string()),
+    //             ],
+    //         ),
+    //         Payment::new(
+    //             Money::new(1500),
+    //             Person::new("R".to_string()),
+    //             vec![
+    //                 Person::new("B".to_string()),
+    //                 Person::new("D".to_string()),
+    //                 Person::new("J".to_string()),
+    //                 Person::new("N".to_string()),
+    //                 Person::new("P".to_string()),
+    //                 Person::new("R".to_string()),
+    //                 Person::new("S".to_string()),
+    //                 Person::new("X".to_string()),
+    //                 Person::new("Y".to_string()),
+    //             ],
+    //         ),
+    //         Payment::new(
+    //             Money::new(2767),
+    //             Person::new("J".to_string()),
+    //             vec![
+    //                 Person::new("B".to_string()),
+    //                 Person::new("D".to_string()),
+    //                 Person::new("J".to_string()),
+    //                 Person::new("N".to_string()),
+    //                 Person::new("P".to_string()),
+    //                 Person::new("R".to_string()),
+    //                 Person::new("S".to_string()),
+    //                 Person::new("X".to_string()),
+    //                 Person::new("Y".to_string()),
+    //             ],
+    //         ),
+    //         Payment::new(
+    //             Money::new(6100),
+    //             Person::new("X".to_string()),
+    //             vec![
+    //                 Person::new("B".to_string()),
+    //                 Person::new("D".to_string()),
+    //                 Person::new("N".to_string()),
+    //                 Person::new("P".to_string()),
+    //                 Person::new("R".to_string()),
+    //                 Person::new("X".to_string()),
+    //                 Person::new("Y".to_string()),
+    //             ],
+    //         ),
+    //         Payment::new(
+    //             Money::new(66857),
+    //             Person::new("X".to_string()),
+    //             vec![
+    //                 Person::new("B".to_string()),
+    //                 Person::new("D".to_string()),
+    //                 Person::new("J".to_string()),
+    //                 Person::new("N".to_string()),
+    //                 Person::new("P".to_string()),
+    //                 Person::new("S".to_string()),
+    //                 Person::new("X".to_string()),
+    //                 Person::new("Y".to_string()),
+    //             ],
+    //         ),
+    //         Payment::new(
+    //             Money::new(690),
+    //             Person::new("Y".to_string()),
+    //             vec![
+    //                 Person::new("B".to_string()),
+    //                 Person::new("D".to_string()),
+    //                 Person::new("J".to_string()),
+    //                 Person::new("N".to_string()),
+    //                 Person::new("P".to_string()),
+    //                 Person::new("R".to_string()),
+    //                 Person::new("S".to_string()),
+    //                 Person::new("X".to_string()),
+    //                 Person::new("Y".to_string()),
+    //             ],
+    //         ),
+    //         Payment::new(
+    //             Money::new(6160),
+    //             Person::new("Y".to_string()),
+    //             vec![
+    //                 Person::new("B".to_string()),
+    //                 Person::new("D".to_string()),
+    //                 Person::new("J".to_string()),
+    //                 Person::new("N".to_string()),
+    //                 Person::new("P".to_string()),
+    //                 Person::new("R".to_string()),
+    //                 Person::new("S".to_string()),
+    //                 Person::new("X".to_string()),
+    //                 Person::new("Y".to_string()),
+    //             ],
+    //         ),
+    //         Payment::new(
+    //             Money::new(350),
+    //             Person::new("N".to_string()),
+    //             vec![
+    //                 Person::new("B".to_string()),
+    //                 Person::new("D".to_string()),
+    //                 Person::new("J".to_string()),
+    //                 Person::new("N".to_string()),
+    //                 Person::new("P".to_string()),
+    //                 Person::new("R".to_string()),
+    //                 Person::new("S".to_string()),
+    //                 Person::new("X".to_string()),
+    //                 Person::new("Y".to_string()),
+    //             ],
+    //         ),
+    //         Payment::new(
+    //             Money::new(330),
+    //             Person::new("N".to_string()),
+    //             vec![
+    //                 Person::new("B".to_string()),
+    //                 Person::new("D".to_string()),
+    //                 Person::new("J".to_string()),
+    //                 Person::new("N".to_string()),
+    //                 Person::new("P".to_string()),
+    //                 Person::new("R".to_string()),
+    //                 Person::new("S".to_string()),
+    //                 Person::new("X".to_string()),
+    //                 Person::new("Y".to_string()),
+    //             ],
+    //         ),
+    //         Payment::new(
+    //             Money::new(330),
+    //             Person::new("N".to_string()),
+    //             vec![
+    //                 Person::new("B".to_string()),
+    //                 Person::new("D".to_string()),
+    //                 Person::new("J".to_string()),
+    //                 Person::new("N".to_string()),
+    //                 Person::new("P".to_string()),
+    //                 Person::new("R".to_string()),
+    //                 Person::new("S".to_string()),
+    //                 Person::new("X".to_string()),
+    //                 Person::new("Y".to_string()),
+    //             ],
+    //         ),
+    //     ],
+    //     vec![
+    //         Repayment::new(
+    //             Money::new(10554),
+    //             Person::new("D".to_string()),
+    //             Person::new("X".to_string()),
+    //         ),
+    //         Repayment::new(
+    //             Money::new(7115),
+    //             Person::new("J".to_string()),
+    //             Person::new("X".to_string()),
+    //         ),
+    //         Repayment::new(
+    //             Money::new(10754),
+    //             Person::new("B".to_string()),
+    //             Person::new("X".to_string()),
+    //         ),
+    //         Repayment::new(
+    //             Money::new(10754),
+    //             Person::new("P".to_string()),
+    //             Person::new("X".to_string()),
+    //         ),
+    //         Repayment::new(
+    //             Money::new(897),
+    //             Person::new("R".to_string()),
+    //             Person::new("X".to_string()),
+    //         ),
+    //         Repayment::new(
+    //             Money::new(9882),
+    //             Person::new("S".to_string()),
+    //             Person::new("X".to_string()),
+    //         ),
+    //         Repayment::new(
+    //             Money::new(8344),
+    //             Person::new("N".to_string()),
+    //             Person::new("X".to_string()),
+    //         ),
+    //         Repayment::new(
+    //             Money::new(3904),
+    //             Person::new("Y".to_string()),
+    //             Person::new("X".to_string()),
+    //         ),
+    //     ]
+    // )]
     fn test_solve(#[case] payments: Vec<Payment>, #[case] expected: Vec<Repayment>) {
         let repayments = solve(payments);
+        println!("repayments: {:?}", repayments);
         assert_eq!(repayments.len(), expected.len());
         for repayment in expected {
             assert!(repayments.contains(&repayment));
