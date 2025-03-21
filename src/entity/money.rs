@@ -1,3 +1,4 @@
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Money(u32);
 
 impl Money {
