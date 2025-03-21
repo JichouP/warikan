@@ -1,5 +1,5 @@
 #![deny(unsafe_code)]
 #![allow(unused)]
 
-mod entity;
-mod solver;
+pub mod entity;
+pub mod solver;

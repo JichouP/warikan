@@ -1,23 +1,36 @@
 use crate::entity::{money::Money, payment::Payment, person::Person, repayment::Repayment};
 use std::collections::HashMap;
 
+fn update_balance(balances: &mut HashMap<String, i32>, person: String, amount: i32) {
+    *balances.entry(person).or_insert(0) += amount;
+}
+
 pub fn solve(payments: Vec<Payment>) -> Vec<Repayment> {
-    // 各人の残高を計算
-    let mut balances: HashMap<String, i32> = HashMap::new();
+    // 支払いの数から初期容量を推定
+    let estimated_capacity = payments.len() * 2;
+    let mut balances: HashMap<String, i32> = HashMap::with_capacity(estimated_capacity);
 
     for payment in payments {
         let payer = payment.from().as_inner().clone();
         let amount = payment.money().as_inner() as i32;
         let participants = payment.to();
+
+        // 参加者が空の場合はスキップ
+        if participants.is_empty() {
+            continue;
+        }
+
         let share = amount / participants.len() as i32;
+        let remainder = amount % participants.len() as i32;
 
         // 支払った人の残高を増やす
-        *balances.entry(payer).or_insert(0) += amount;
+        update_balance(&mut balances, payer, amount);
 
-        // 参加者の残高を減らす
-        for participant in participants {
+        // 参加者の残高を減らす（端数は最初の参加者に割り当て）
+        for (i, participant) in participants.iter().enumerate() {
             let name = participant.as_inner().clone();
-            *balances.entry(name).or_insert(0) -= share;
+            let share_amount = if i == 0 { share + remainder } else { share };
+            update_balance(&mut balances, name, -share_amount);
         }
     }
 
