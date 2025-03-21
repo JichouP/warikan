@@ -2,25 +2,25 @@ use super::{money::Money, person::Person};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Payment {
-    amount: Money,
+    money: Money,
     from: Person,
-    to: Person,
+    to: Vec<Person>,
 }
 
 impl Payment {
-    pub fn new(amount: Money, from: Person, to: Person) -> Self {
-        Self { amount, from, to }
+    pub fn new(money: Money, from: Person, to: Vec<Person>) -> Self {
+        Self { money, from, to }
     }
 
-    pub fn amount(&self) -> &Money {
-        &self.amount
+    pub fn money(&self) -> &Money {
+        &self.money
     }
 
     pub fn from(&self) -> &Person {
         &self.from
     }
 
-    pub fn to(&self) -> &Person {
+    pub fn to(&self) -> &Vec<Person> {
         &self.to
     }
 }
@@ -34,10 +34,13 @@ mod tests {
         let amount = 100;
         let money = Money::new(amount);
         let from = Person::new("John".to_string());
-        let to = Person::new("Jane".to_string());
-        let payment = Payment::new(money, from.clone(), to.clone());
+        let to = vec![
+            Person::new("Jane".to_string()),
+            Person::new("Doe".to_string()),
+        ];
+        let payment = Payment::new(money.clone(), from.clone(), to.clone());
 
-        assert_eq!(payment.amount().as_inner(), amount);
+        assert_eq!(payment.money(), &money);
         assert_eq!(payment.from(), &from);
         assert_eq!(payment.to(), &to);
     }
