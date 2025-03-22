@@ -1,14 +1,9 @@
 use crate::entity::{money::Money, payment::Payment, person::Person, repayment::Repayment};
 use std::collections::HashMap;
 
-fn update_balance(balances: &mut HashMap<String, i32>, person: String, amount: i32) {
-    *balances.entry(person).or_insert(0) += amount;
-}
-
 pub fn solve(payments: Vec<Payment>) -> Vec<Repayment> {
-    // 支払いの数から初期容量を推定
-    let estimated_capacity = payments.len() * 2;
-    let mut balances: HashMap<String, i32> = HashMap::with_capacity(estimated_capacity);
+    // 各人の残高を計算
+    let mut balances: HashMap<String, i32> = HashMap::new();
 
     for payment in payments {
         let payer = payment.from().as_inner().clone();
@@ -20,70 +15,112 @@ pub fn solve(payments: Vec<Payment>) -> Vec<Repayment> {
             continue;
         }
 
-        // 支払った人の残高を増やす
-        update_balance(&mut balances, payer, amount);
+        // 支払った人は支払い金額を追加（債権）
+        *balances.entry(payer.clone()).or_insert(0) += amount;
 
-        // 参加者の残高を減らす（端数は最後の参加者に割り当て）
-        let share = amount / participants.len() as i32;
+        // 各参加者の負担分を計算
+        let share_per_person = amount / participants.len() as i32;
         let remainder = amount % participants.len() as i32;
 
-        for (i, participant) in participants.iter().rev().enumerate() {
+        // 参加者ごとに負担額を差し引く（債務）
+        for (i, participant) in participants.iter().enumerate() {
             let name = participant.as_inner().clone();
-            let share_amount = if i == 0 { share + remainder } else { share };
-            update_balance(&mut balances, name, -share_amount);
+
+            // 最後の参加者に余りを加算
+            let share = if i == participants.len() - 1 {
+                share_per_person + remainder
+            } else {
+                share_per_person
+            };
+
+            // 自分自身が支払者かつ参加者の場合は相殺
+            if name == payer {
+                *balances.get_mut(&name).unwrap() -= share;
+            } else {
+                *balances.entry(name).or_insert(0) -= share;
+            }
         }
     }
 
-    // プラス残高とマイナス残高の人々を分ける
+    // 債権者と債務者に分ける
     let mut creditors: Vec<(String, i32)> = Vec::new();
     let mut debtors: Vec<(String, i32)> = Vec::new();
 
     for (person, balance) in balances {
-        match balance {
-            b if b > 0 => creditors.push((person, balance)),
-            b if b < 0 => debtors.push((person, balance)),
-            _ => {}
+        if balance > 0 {
+            // プラス残高は債権者
+            creditors.push((person, balance));
+        } else if balance < 0 {
+            // マイナス残高は債務者
+            debtors.push((person, -balance)); // 負の値を正にして保存
         }
     }
 
-    // 残高の絶対値が大きい順にソート
+    // 債権額の大きい順にソート
     creditors.sort_by(|a, b| b.1.cmp(&a.1));
-    debtors.sort_by(|a, b| a.1.cmp(&b.1));
 
-    // 返済リストを作成
+    // 債務額の大きい順にソート
+    debtors.sort_by(|a, b| b.1.cmp(&a.1));
+
+    // 返済計画を生成
     let mut repayments = Vec::new();
-    let mut i = 0;
-    let mut j = 0;
 
-    while i < debtors.len() && j < creditors.len() {
-        let debtor = &debtors[i];
-        let creditor = &creditors[j];
-
-        // 返済額を計算（小さい方の絶対値）
-        let repayment_amount = std::cmp::min(creditor.1, -debtor.1);
-
-        // 返済を作成
-        repayments.push(Repayment::new(
-            Money::new(repayment_amount),
-            Person::new(debtor.0.clone()),
-            Person::new(creditor.0.clone()),
-        ));
-
-        // 残高を更新
-        let new_debtor_balance = debtor.1 + repayment_amount;
-        let new_creditor_balance = creditor.1 - repayment_amount;
-
-        // 残高が0になった人は次へ
-        if new_debtor_balance == 0 {
-            i += 1;
-        }
-
-        if new_creditor_balance == 0 {
-            j += 1;
-        }
-    }
+    // 再帰的に清算計算を行う
+    calculate_repayments(&mut creditors, &mut debtors, &mut repayments);
 
     repayments
+}
+
+fn calculate_repayments(
+    creditors: &mut Vec<(String, i32)>,
+    debtors: &mut Vec<(String, i32)>,
+    repayments: &mut Vec<Repayment>,
+) {
+    // 債権者または債務者がいなくなったら終了
+    if creditors.is_empty() || debtors.is_empty() {
+        return;
+    }
+
+    // 最大債権者と最大債務者を取得
+    let creditor = &creditors[0];
+    let debtor = &debtors[0];
+
+    // 清算金額 = min(債権額, 債務額)
+    let amount = std::cmp::min(creditor.1, debtor.1);
+
+    // 金額が0なら処理終了
+    if amount == 0 {
+        return;
+    }
+
+    // 返済を記録
+    repayments.push(Repayment::new(
+        Money::new(amount),
+        Person::new(debtor.0.clone()),
+        Person::new(creditor.0.clone()),
+    ));
+
+    // 残高を更新
+    let mut updated_creditors = creditors.clone();
+    let mut updated_debtors = debtors.clone();
+
+    // 債権者の残高を減らす
+    updated_creditors[0].1 -= amount;
+
+    // 債務者の残高を減らす
+    updated_debtors[0].1 -= amount;
+
+    // 残高が0になった人を削除
+    if updated_creditors[0].1 == 0 {
+        updated_creditors.remove(0);
+    }
+
+    if updated_debtors[0].1 == 0 {
+        updated_debtors.remove(0);
+    }
+
+    // 次の清算を計算
+    calculate_repayments(&mut updated_creditors, &mut updated_debtors, repayments);
 }
 
 #[cfg(test)]
