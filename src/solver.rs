@@ -92,392 +92,116 @@ mod tests {
     use crate::entity::{money::Money, person::Person};
     use rstest::rstest;
 
+    // タプルからPaymentを作成するヘルパー関数
+    fn payment_from_tuple(amount: i32, payer: &str, beneficiaries: Vec<&str>) -> Payment {
+        Payment::new(
+            Money::new(amount),
+            Person::new(payer.to_string()),
+            beneficiaries
+                .into_iter()
+                .map(|name| Person::new(name.to_string()))
+                .collect(),
+        )
+    }
+
+    // タプルからRepaymentを作成するヘルパー関数
+    fn repayment_from_tuple(amount: i32, from: &str, to: &str) -> Repayment {
+        Repayment::new(
+            Money::new(amount),
+            Person::new(from.to_string()),
+            Person::new(to.to_string()),
+        )
+    }
+
     #[rstest]
+    // ケース1: シンプルな支払い
     #[case(
-        vec![Payment::new(
-            Money::new(100),
-            Person::new("A".to_string()),
-            vec![Person::new("B".to_string())],
-        )],
-        vec![Repayment::new(
-            Money::new(100),
-            Person::new("B".to_string()),
-            Person::new("A".to_string()),
-        )]
+        vec![(100, "A", vec!["B"])], 
+        vec![(100, "B", "A")]
     )]
+    // ケース2: 自分自身も受益者に含む場合
     #[case(
-        vec![Payment::new(
-            Money::new(100),
-            Person::new("A".to_string()),
-            vec![
-                Person::new("A".to_string()),
-                Person::new("B".to_string()),
-            ],
-        )],
-        vec![Repayment::new(
-            Money::new(50),
-            Person::new("B".to_string()),
-            Person::new("A".to_string()),
-        )]
+        vec![(100, "A", vec!["A", "B"])], 
+        vec![(50, "B", "A")]
     )]
+    // ケース3: 複数人への分割
     #[case(
-        vec![Payment::new(
-            Money::new(2000),
-            Person::new("A".to_string()),
-            vec![
-                Person::new("A".to_string()),
-                Person::new("B".to_string()),
-                Person::new("C".to_string()),
-                Person::new("D".to_string()),
-            ],
-        )],
+        vec![(2000, "A", vec!["A", "B", "C", "D"])], 
         vec![
-            Repayment::new(
-                Money::new(500),
-                Person::new("B".to_string()),
-                Person::new("A".to_string()),
-            ),
-            Repayment::new(
-                Money::new(500),
-                Person::new("C".to_string()),
-                Person::new("A".to_string()),
-            ),
-            Repayment::new(
-                Money::new(500),
-                Person::new("D".to_string()),
-                Person::new("A".to_string()),
-            ),
+            (500, "B", "A"),
+            (500, "C", "A"),
+            (500, "D", "A"),
         ]
     )]
-    #[case(
-        vec![Payment::new(
-            Money::new(1200),
-            Person::new("A".to_string()),
-            vec![
-                Person::new("A".to_string()),
-                Person::new("B".to_string()),
-            ],
-        ),
-        Payment::new(
-            Money::new(1200),
-            Person::new("B".to_string()),
-            vec![
-                Person::new("A".to_string()),
-                Person::new("B".to_string()),
-                Person::new("C".to_string()),
-                Person::new("D".to_string()),
-            ],
-        ),
-        Payment::new(
-            Money::new(1200),
-            Person::new("C".to_string()),
-            vec![
-                Person::new("A".to_string()),
-                Person::new("B".to_string()),
-                Person::new("C".to_string()),
-                Person::new("D".to_string()),
-            ],
-        ),
-        Payment::new(
-            Money::new(1200),
-            Person::new("D".to_string()),
-            vec![
-                Person::new("B".to_string()),
-                Person::new("C".to_string()),
-                Person::new("D".to_string()),
-            ],
-        ),
-    ],
-        vec![
-            Repayment::new(
-                Money::new(200),
-                Person::new("B".to_string()),
-                Person::new("C".to_string()),
-            ),
-            Repayment::new(
-                Money::new(200),
-                Person::new("B".to_string()),
-                Person::new("D".to_string()),
-            ),
-        ]
-    )]
+    // ケース4: 複数の支払い
     #[case(
         vec![
-            Payment::new(
-                Money::new(37009),
-                Person::new("A".to_string()),
-                vec![
-                    Person::new("A".to_string()),
-                    Person::new("B".to_string()),
-                    Person::new("C".to_string()),
-                    Person::new("D".to_string()),
-                    Person::new("E".to_string()),
-                    Person::new("F".to_string()),
-                    Person::new("G".to_string()),
-                    Person::new("H".to_string()),
-                ],
-            ),
-            Payment::new(
-                Money::new(35300),
-                Person::new("B".to_string()),
-                vec![
-                    Person::new("A".to_string()),
-                    Person::new("B".to_string()),
-                    Person::new("C".to_string()),
-                    Person::new("D".to_string()),
-                    Person::new("E".to_string()),
-                    Person::new("F".to_string()),
-                    Person::new("G".to_string()),
-                    Person::new("H".to_string()),
-                ],
-            ),
-            Payment::new(
-                Money::new(7249),
-                Person::new("C".to_string()),
-                vec![
-                    Person::new("A".to_string()),
-                    Person::new("B".to_string()),
-                    Person::new("C".to_string()),
-                    Person::new("D".to_string()),
-                    Person::new("E".to_string()),
-                    Person::new("F".to_string()),
-                    Person::new("G".to_string()),
-                    Person::new("H".to_string()),
-                ],
-            ),
+            (1200, "A", vec!["A", "B"]),
+            (1200, "B", vec!["A", "B", "C", "D"]),
+            (1200, "C", vec!["A", "B", "C", "D"]),
+            (1200, "D", vec!["B", "C", "D"]),
         ],
         vec![
-            Repayment::new(
-                Money::new(2696),
-                Person::new("C".to_string()),
-                Person::new("A".to_string()),
-            ),
-            Repayment::new(
-                Money::new(9944),
-                Person::new("E".to_string()),
-                Person::new("A".to_string()),
-            ),
-            Repayment::new(
-                Money::new(9944),
-                Person::new("G".to_string()),
-                Person::new("A".to_string()),
-            ),
-            Repayment::new(
-                Money::new(9944),
-                Person::new("D".to_string()),
-                Person::new("B".to_string()),
-            ),
-            Repayment::new(
-                Money::new(9944),
-                Person::new("F".to_string()),
-                Person::new("B".to_string()),
-            ),
-            Repayment::new(
-                Money::new(9944),
-                Person::new("H".to_string()),
-                Person::new("B".to_string()),
-            ),
-            Repayment::new(
-                Money::new(4480),
-                Person::new("B".to_string()),
-                Person::new("A".to_string()),
-            ),
+            (200, "B", "C"),
+            (200, "B", "D"),
         ]
     )]
-    // #[case(
-    //     vec![
-    //         Payment::new(
-    //             Money::new(200),
-    //             Person::new("D".to_string()),
-    //             vec![
-    //                 Person::new("B".to_string()),
-    //                 Person::new("D".to_string()),
-    //                 Person::new("J".to_string()),
-    //                 Person::new("N".to_string()),
-    //                 Person::new("P".to_string()),
-    //                 Person::new("R".to_string()),
-    //                 Person::new("S".to_string()),
-    //                 Person::new("X".to_string()),
-    //                 Person::new("Y".to_string()),
-    //             ],
-    //         ),
-    //         Payment::new(
-    //             Money::new(1500),
-    //             Person::new("R".to_string()),
-    //             vec![
-    //                 Person::new("B".to_string()),
-    //                 Person::new("D".to_string()),
-    //                 Person::new("J".to_string()),
-    //                 Person::new("N".to_string()),
-    //                 Person::new("P".to_string()),
-    //                 Person::new("R".to_string()),
-    //                 Person::new("S".to_string()),
-    //                 Person::new("X".to_string()),
-    //                 Person::new("Y".to_string()),
-    //             ],
-    //         ),
-    //         Payment::new(
-    //             Money::new(2767),
-    //             Person::new("J".to_string()),
-    //             vec![
-    //                 Person::new("B".to_string()),
-    //                 Person::new("D".to_string()),
-    //                 Person::new("J".to_string()),
-    //                 Person::new("N".to_string()),
-    //                 Person::new("P".to_string()),
-    //                 Person::new("R".to_string()),
-    //                 Person::new("S".to_string()),
-    //                 Person::new("X".to_string()),
-    //                 Person::new("Y".to_string()),
-    //             ],
-    //         ),
-    //         Payment::new(
-    //             Money::new(6100),
-    //             Person::new("X".to_string()),
-    //             vec![
-    //                 Person::new("B".to_string()),
-    //                 Person::new("D".to_string()),
-    //                 Person::new("N".to_string()),
-    //                 Person::new("P".to_string()),
-    //                 Person::new("R".to_string()),
-    //                 Person::new("X".to_string()),
-    //                 Person::new("Y".to_string()),
-    //             ],
-    //         ),
-    //         Payment::new(
-    //             Money::new(66857),
-    //             Person::new("X".to_string()),
-    //             vec![
-    //                 Person::new("B".to_string()),
-    //                 Person::new("D".to_string()),
-    //                 Person::new("J".to_string()),
-    //                 Person::new("N".to_string()),
-    //                 Person::new("P".to_string()),
-    //                 Person::new("S".to_string()),
-    //                 Person::new("X".to_string()),
-    //                 Person::new("Y".to_string()),
-    //             ],
-    //         ),
-    //         Payment::new(
-    //             Money::new(690),
-    //             Person::new("Y".to_string()),
-    //             vec![
-    //                 Person::new("B".to_string()),
-    //                 Person::new("D".to_string()),
-    //                 Person::new("J".to_string()),
-    //                 Person::new("N".to_string()),
-    //                 Person::new("P".to_string()),
-    //                 Person::new("R".to_string()),
-    //                 Person::new("S".to_string()),
-    //                 Person::new("X".to_string()),
-    //                 Person::new("Y".to_string()),
-    //             ],
-    //         ),
-    //         Payment::new(
-    //             Money::new(6160),
-    //             Person::new("Y".to_string()),
-    //             vec![
-    //                 Person::new("B".to_string()),
-    //                 Person::new("D".to_string()),
-    //                 Person::new("J".to_string()),
-    //                 Person::new("N".to_string()),
-    //                 Person::new("P".to_string()),
-    //                 Person::new("R".to_string()),
-    //                 Person::new("S".to_string()),
-    //                 Person::new("X".to_string()),
-    //                 Person::new("Y".to_string()),
-    //             ],
-    //         ),
-    //         Payment::new(
-    //             Money::new(350),
-    //             Person::new("N".to_string()),
-    //             vec![
-    //                 Person::new("B".to_string()),
-    //                 Person::new("D".to_string()),
-    //                 Person::new("J".to_string()),
-    //                 Person::new("N".to_string()),
-    //                 Person::new("P".to_string()),
-    //                 Person::new("R".to_string()),
-    //                 Person::new("S".to_string()),
-    //                 Person::new("X".to_string()),
-    //                 Person::new("Y".to_string()),
-    //             ],
-    //         ),
-    //         Payment::new(
-    //             Money::new(330),
-    //             Person::new("N".to_string()),
-    //             vec![
-    //                 Person::new("B".to_string()),
-    //                 Person::new("D".to_string()),
-    //                 Person::new("J".to_string()),
-    //                 Person::new("N".to_string()),
-    //                 Person::new("P".to_string()),
-    //                 Person::new("R".to_string()),
-    //                 Person::new("S".to_string()),
-    //                 Person::new("X".to_string()),
-    //                 Person::new("Y".to_string()),
-    //             ],
-    //         ),
-    //         Payment::new(
-    //             Money::new(330),
-    //             Person::new("N".to_string()),
-    //             vec![
-    //                 Person::new("B".to_string()),
-    //                 Person::new("D".to_string()),
-    //                 Person::new("J".to_string()),
-    //                 Person::new("N".to_string()),
-    //                 Person::new("P".to_string()),
-    //                 Person::new("R".to_string()),
-    //                 Person::new("S".to_string()),
-    //                 Person::new("X".to_string()),
-    //                 Person::new("Y".to_string()),
-    //             ],
-    //         ),
-    //     ],
-    //     vec![
-    //         Repayment::new(
-    //             Money::new(10554),
-    //             Person::new("D".to_string()),
-    //             Person::new("X".to_string()),
-    //         ),
-    //         Repayment::new(
-    //             Money::new(7115),
-    //             Person::new("J".to_string()),
-    //             Person::new("X".to_string()),
-    //         ),
-    //         Repayment::new(
-    //             Money::new(10754),
-    //             Person::new("B".to_string()),
-    //             Person::new("X".to_string()),
-    //         ),
-    //         Repayment::new(
-    //             Money::new(10754),
-    //             Person::new("P".to_string()),
-    //             Person::new("X".to_string()),
-    //         ),
-    //         Repayment::new(
-    //             Money::new(897),
-    //             Person::new("R".to_string()),
-    //             Person::new("X".to_string()),
-    //         ),
-    //         Repayment::new(
-    //             Money::new(9882),
-    //             Person::new("S".to_string()),
-    //             Person::new("X".to_string()),
-    //         ),
-    //         Repayment::new(
-    //             Money::new(8344),
-    //             Person::new("N".to_string()),
-    //             Person::new("X".to_string()),
-    //         ),
-    //         Repayment::new(
-    //             Money::new(3904),
-    //             Person::new("Y".to_string()),
-    //             Person::new("X".to_string()),
-    //         ),
-    //     ]
-    // )]
-    fn test_solve(#[case] payments: Vec<Payment>, #[case] expected: Vec<Repayment>) {
+    // ケース5: より複雑なケース - 8人グループ、3つの支払い
+    #[case(
+        vec![
+            (37009, "A", vec!["A", "B", "C", "D", "E", "F", "G", "H"]),
+            (35300, "B", vec!["A", "B", "C", "D", "E", "F", "G", "H"]),
+            (7249, "C", vec!["A", "B", "C", "D", "E", "F", "G", "H"]),
+        ],
+        vec![
+            (2696, "C", "A"),
+            (9944, "E", "A"),
+            (9944, "G", "A"),
+            (9944, "D", "B"),
+            (9944, "F", "B"),
+            (9944, "H", "B"),
+            (4480, "B", "A"),
+        ]
+    )]
+    // ケース6: 複数人グループ、多数の支払い
+    #[case(
+        vec![
+            (200, "D", vec!["B", "D", "J", "N", "P", "R", "S", "X", "Y"]),
+            (1500, "R", vec!["B", "D", "J", "N", "P", "R", "S", "X", "Y"]),
+            (2767, "J", vec!["B", "D", "J", "N", "P", "R", "S", "X", "Y"]),
+            (6100, "X", vec!["B", "D", "N", "P", "R", "X", "Y"]),
+            (66857, "X", vec!["B", "D", "J", "N", "P", "S", "X", "Y"]),
+            (690, "Y", vec!["B", "D", "J", "N", "P", "R", "S", "X", "Y"]),
+            (6160, "Y", vec!["B", "D", "J", "N", "P", "R", "S", "X", "Y"]),
+            (350, "N", vec!["B", "D", "J", "N", "P", "R", "S", "X", "Y"]),
+            (330, "N", vec!["B", "D", "J", "N", "P", "R", "S", "X", "Y"]),
+            (330, "N", vec!["B", "D", "J", "N", "P", "R", "S", "X", "Y"]),
+        ],
+        vec![
+            (10554, "D", "X"),
+            (7115, "J", "X"),
+            (10754, "B", "X"),
+            (10754, "P", "X"),
+            (897, "R", "X"),
+            (9882, "S", "X"),
+            (8344, "N", "X"),
+            (3904, "Y", "X"),
+        ]
+    )]
+    fn test_solve(
+        #[case] payment_tuples: Vec<(i32, &str, Vec<&str>)>,
+        #[case] repayment_tuples: Vec<(i32, &str, &str)>,
+    ) {
+        let payments = payment_tuples
+            .into_iter()
+            .map(|(amount, payer, beneficiaries)| payment_from_tuple(amount, payer, beneficiaries))
+            .collect();
+
+        let expected: Vec<Repayment> = repayment_tuples
+            .into_iter()
+            .map(|(amount, from, to)| repayment_from_tuple(amount, from, to))
+            .collect();
+
         let repayments = solve(payments);
         println!("repayments: {:?}", repayments);
         assert_eq!(repayments.len(), expected.len());
