@@ -2,6 +2,8 @@
 
 [![Build](https://github.com/JichouP/warikan/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/JichouP/warikan/actions/workflows/build.yml)
 
+割り勘を計算するライブラリ
+
 ## Develop
 
 1. `.env.example` を `.env` にコピーし、環境変数を設定する
