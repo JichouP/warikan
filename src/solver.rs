@@ -48,24 +48,14 @@ pub fn solve(payments: Vec<Payment>) -> Vec<Repayment> {
 
     for (person, balance) in balances {
         match balance.cmp(&0) {
-            std::cmp::Ordering::Greater => {
-                // プラス残高は債権者
-                creditors.push((person, balance));
-            }
-            std::cmp::Ordering::Less => {
-                // マイナス残高は債務者
-                debtors.push((person, -balance)); // 負の値を正にして保存
-            }
-            std::cmp::Ordering::Equal => {
-                // 残高が0の場合は何もしない
-            }
+            std::cmp::Ordering::Greater => creditors.push((person, balance)),
+            std::cmp::Ordering::Less => debtors.push((person, -balance)),
+            std::cmp::Ordering::Equal => {}
         }
     }
 
     // 債権額の大きい順にソート、金額が同じ場合は名前で安定的にソート
     creditors.sort_by(|a, b| b.1.cmp(&a.1).then_with(|| a.0.cmp(&b.0)));
-
-    // 債務額の大きい順にソート、金額が同じ場合は名前で安定的にソート
     debtors.sort_by(|a, b| b.1.cmp(&a.1).then_with(|| a.0.cmp(&b.0)));
 
     // 返済計画を生成
